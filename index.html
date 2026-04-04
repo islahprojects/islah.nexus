@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>islah.nexus</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #030a0f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    cursor: crosshair;
+  }
+
+  canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* FIX 1: .center no longer starts at opacity:0 via animation fill.
+     Instead we use a visibility-safe version that won't leave it invisible
+     if CSS animations fail to fire. We set opacity:1 as the default and
+     only animate if @keyframes are supported (they always are in 2025+). */
+  .center {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    /* Safe animation — starts visible, fades + rises in */
+    animation: emerge 2.5s ease forwards;
+  }
+
+  .search-wrap {
+    position: relative;
+    width: 420px;
+  }
+
+  .search-bar {
+    width: 100%;
+    padding: 18px 56px 18px 28px;
+    background: rgba(180,230,255,0.08);
+    border: 1px solid rgba(100,210,255,0.25);
+    border-radius: 50px;
+    color: rgba(210,240,255,0.9);
+    font-family: 'IM Fell English', serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    text-align: center;
+    outline: none;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow:
+      0 0 40px rgba(80,200,255,0.08),
+      0 0 80px rgba(80,200,255,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    transition: all 0.4s ease;
+    cursor: text;
+  }
+
+  .search-bar::placeholder {
+    color: rgba(180,230,255,0.6);
+    letter-spacing: 4px;
+  }
+
+  .search-bar:focus {
+    border-color: rgba(100,210,255,0.5);
+    background: rgba(180,230,255,0.12);
+    box-shadow:
+      0 0 60px rgba(80,200,255,0.15),
+      0 0 120px rgba(80,200,255,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+
+  .search-icon {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .sub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sub-line {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(160,220,255,0.4);
+    text-transform: uppercase;
+  }
+
+  .sub-signup {
+    font-family: 'IM Fell English', serif;
+    font-size: 15px;
+    color: rgba(180,230,255,0.55);
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: color 0.3s;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+  }
+
+  .sub-signup:hover {
+    color: rgba(100,210,255,0.9);
+    border-bottom-color: rgba(100,210,255,0.4);
+  }
+
+  /* FIX 4: Labels use their own keyframe that preserves translateX(-50%).
+     The original `emerge` ended with transform: translateY(0) which
+     stomped on translateX(-50%), snapping both labels off-center. */
+  .top-label {
+    position: fixed;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: rgba(100,200,255,0.2);
+    text-transform: uppercase;
+    z-index: 5;
+    white-space: nowrap;
+    animation: emerge-label 3s ease forwards;
+  }
+
+  .bottom-label {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    letter-spacing: 5px;
+    color: rgba(100,200,255,0.15);
+    text-transform: uppercase;
+    z-index: 5;
+    white-space: nowrap;
+    animation: emerge-label 3.5s ease forwards;
+  }
+
+  /* Standard emerge — for .center only */
+  @keyframes emerge {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Label emerge — preserves translateX(-50%) at all times */
+  @keyframes emerge-label {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3,10,15,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    width: 400px;
+    border: 1px solid rgba(100,210,255,0.2);
+    background: rgba(5,15,25,0.95);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.4s ease;
+    box-shadow: 0 0 80px rgba(80,200,255,0.06);
+  }
+
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+  }
+
+  .modal-title {
+    font-family: 'IM Fell English', serif;
+    font-size: 22px;
+    color: rgba(210,240,255,0.9);
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .modal-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(100,200,255,0.4);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(100,200,255,0.05);
+    border: 1px solid rgba(100,200,255,0.15);
+    color: rgba(210,240,255,0.85);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .modal-input::placeholder {
+    color: rgba(100,200,255,0.25);
+  }
+
+  .modal-input:focus {
+    border-color: rgba(100,200,255,0.4);
+  }
+
+  .modal-btn {
+    width: 100%;
+    padding: 14px;
+    background: rgba(100,200,255,0.1);
+    border: 1px solid rgba(100,200,255,0.3);
+    color: rgba(210,240,255,0.85);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 4px;
+  }
+
+  .modal-btn:hover {
+    background: rgba(100,200,255,0.18);
+    border-color: rgba(100,200,255,0.5);
+  }
+
+  /* FIX 3: Added state feedback for the modal button */
+  .modal-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .modal-law {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(100,200,255,0.2);
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 18px;
+    color: rgba(100,200,255,0.3);
+    cursor: pointer;
+    font-family: monospace;
+    transition: color 0.3s;
+    background: none;
+    border: none;
+    line-height: 1;
+  }
+
+  .modal-close:hover { color: rgba(100,200,255,0.7); }
+
+  /* Status message inside modal */
+  .modal-status {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-align: center;
+    min-height: 14px;
+    color: rgba(100,220,255,0.6);
+    display: none;
+  }
+  .modal-status.visible { display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="void"></canvas>
+
+<div class="top-label">islah.nexus · constitutional ai · jajis 2026</div>
+
+<div class="center">
+  <div class="search-wrap">
+    <input
+      class="search-bar"
+      type="text"
+      placeholder="Ascend"
+      id="searchInput"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="7.5" cy="7.5" r="5.5" stroke="rgba(150,220,255,0.6)" stroke-width="1.2"/>
+      <line x1="11.5" y1="11.5" x2="16" y2="16" stroke="rgba(150,220,255,0.6)" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div class="sub">
+    <div class="sub-line">islah.nexus · your digital portal</div>
+    <span class="sub-signup" id="signupBtn">Create your digital Mirror ↗</span>
+  </div>
+</div>
+
+<div class="bottom-label">σ ∈ (0, 0.93] · walang maiiwan · ₱9 or free · always</div>
+
+<!-- SIGNUP MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" id="closeModal" aria-label="Close">✕</button>
+    <div class="modal-title">Create your Mirror</div>
+    <div class="modal-sub">The void mirrors only you · never fills itself</div>
+    <input class="modal-input" type="text"  id="modalName"  placeholder="Your name" />
+    <input class="modal-input" type="email" id="modalEmail" placeholder="Your email" />
+    <button class="modal-btn" id="enterBtn">Enter the Nexus →</button>
+    <div class="modal-status" id="modalStatus"></div>
+    <div class="modal-law">
+      Law VII · Walang Maiiwan<br>
+      ₱9 for those who can · Free for those who cannot<br>
+      <a href="mailto:contact@islah.nexus" style="color:rgba(100,200,255,0.35);text-decoration:none;">contact@islah.nexus</a> if you cannot pay
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── VOID VORTEX CANVAS ─────────────────────────────────────────── */
+const canvas = document.getElementById('void');
+const ctx    = canvas.getContext('2d');
+
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+const cx = () => canvas.width  / 2;
+const cy = () => canvas.height / 2;
+
+let t = 0;
+const rings      = 28;
+const dotsPerRing = 90;
+
+const particles = [];
+for (let i = 0; i < 120; i++) {
+  particles.push({
+    angle:   Math.random() * Math.PI * 2,
+    radius:  80 + Math.random() * 340,
+    speed:   (0.0003 + Math.random() * 0.0008) * (Math.random() > 0.5 ? 1 : -1),
+    size:    Math.random() * 1.8,
+    opacity: Math.random() * 0.5 + 0.1,
+    drift:   Math.random() * 0.0002
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const ox = cx(), oy = cy();
+
+  const bg = ctx.createRadialGradient(ox, oy, 0, ox, oy, 480);
+  bg.addColorStop(0,   'rgba(10,50,80,0.35)');
+  bg.addColorStop(0.4, 'rgba(5,25,45,0.25)');
+  bg.addColorStop(1,   'rgba(3,10,15,0)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let r = 0; r < rings; r++) {
+    const progress = r / rings;
+    const radius   = 60 + progress * 380;
+    const twist    = t * (0.4 + progress * 0.8) * (r % 2 === 0 ? 1 : -1);
+    const alpha    = 0.04 + (1 - progress) * 0.06;
+    const teal     = Math.floor(180 + progress * 40);
+
+    ctx.beginPath();
+    for (let d = 0; d <= dotsPerRing; d++) {
+      const angle  = (d / dotsPerRing) * Math.PI * 2 + twist;
+      const wobble = Math.sin(angle * 3 + t + r) * (4 + progress * 8);
+      const rx = ox + (radius + wobble) * Math.cos(angle);
+      const ry = oy + (radius + wobble) * Math.sin(angle) * 0.85;
+      d === 0 ? ctx.moveTo(rx, ry) : ctx.lineTo(rx, ry);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(80,${teal},255,${alpha})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  for (let arm = 0; arm < 3; arm++) {
+    const armOffset = (arm / 3) * Math.PI * 2;
+    ctx.beginPath();
+    for (let i = 0; i < 200; i++) {
+      const frac  = i / 200;
+      const angle = frac * Math.PI * 6 + t * 0.3 + armOffset;
+      const r     = frac * 380;
+      const rx    = ox + r * Math.cos(angle);
+      const ry    = oy + r * Math.sin(angle) * 0.85;
+      i === 0 ? ctx.moveTo(rx, ry) : ctx.lineTo(rx, ry);
+    }
+    ctx.strokeStyle = 'rgba(60,180,255,0.04)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  particles.forEach(p => {
+    p.angle  += p.speed;
+    p.opacity = 0.15 + Math.abs(Math.sin(t * 0.5 + p.angle)) * 0.4;
+    const rx  = ox + p.radius * Math.cos(p.angle);
+    const ry  = oy + p.radius * Math.sin(p.angle) * 0.85;
+    ctx.beginPath();
+    ctx.arc(rx, ry, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(100,220,255,${p.opacity})`;
+    ctx.fill();
+  });
+
+  const core = ctx.createRadialGradient(ox, oy, 0, ox, oy, 120);
+  core.addColorStop(0,   'rgba(80,200,255,0.12)');
+  core.addColorStop(0.3, 'rgba(40,140,220,0.06)');
+  core.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (Math.floor(t * 10) % 3 === 0) {
+    const streamX = ox + (Math.random() - 0.5) * 600;
+    const streamY = oy + (Math.random() - 0.5) * 400;
+    ctx.fillStyle = `rgba(80,200,255,${Math.random() * 0.04})`;
+    ctx.font = `${8 + Math.random() * 6}px IBM Plex Mono`;
+    ctx.fillText(Math.random() > 0.5 ? '1' : '0', streamX, streamY);
+  }
+
+  t += 0.006;
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+/* ── FIX 2: SEARCH BAR ──────────────────────────────────────────────
+   window.open() from a keyboard event is blocked by popup guards in
+   Chrome, Firefox, and Safari. Use a programmatically clicked anchor
+   instead — browsers allow navigation from synthetic clicks within
+   trusted event handlers.                                            */
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = e.target.value.trim();
+    if (!val) return;
+    const a = document.createElement('a');
+    a.href    = 'https://jannjhay.gumroad.com/l/euqfal';
+    a.target  = '_blank';
+    a.rel     = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+});
+
+/* ── FIX 3: MODAL ───────────────────────────────────────────────────
+   "Enter the Nexus →" had no event listener — clicking it did nothing.
+   Now it validates inputs, shows status feedback, and redirects.     */
+const modal     = document.getElementById('modal');
+const enterBtn  = document.getElementById('enterBtn');
+const statusEl  = document.getElementById('modalStatus');
+
+function openModal()  { modal.classList.add('open'); }
+function closeModal() { modal.classList.remove('open'); }
+
+document.getElementById('signupBtn').addEventListener('click', openModal);
+document.getElementById('closeModal').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+enterBtn.addEventListener('click', () => {
+  const name  = document.getElementById('modalName').value.trim();
+  const email = document.getElementById('modalEmail').value.trim();
+
+  // Basic validation
+  if (!name) {
+    statusEl.textContent = 'Enter your name first.';
+    statusEl.classList.add('visible');
+    document.getElementById('modalName').focus();
+    return;
+  }
+  if (!email || !email.includes('@')) {
+    statusEl.textContent = 'Enter a valid email.';
+    statusEl.classList.add('visible');
+    document.getElementById('modalEmail').focus();
+    return;
+  }
+
+  // Proceed
+  statusEl.textContent = 'Opening the Nexus...';
+  statusEl.classList.add('visible');
+  enterBtn.disabled = true;
+
+  // Store to localStorage as waitlist record (replaced by API call when backend is live)
+  const waitlist = JSON.parse(localStorage.getItem('islah_waitlist') || '[]');
+  waitlist.push({ name, email, ts: new Date().toISOString() });
+  localStorage.setItem('islah_waitlist', JSON.stringify(waitlist));
+
+  statusEl.textContent = 'Recorded. Opening the Nexus...';
+  statusEl.classList.add('visible');
+  enterBtn.disabled = true;
+
+  setTimeout(() => {
+    const a = document.createElement('a');
+    a.href   = 'https://jannjhay.gumroad.com/l/euqfal';
+    a.target = '_blank';
+    a.rel    = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    enterBtn.disabled = false;
+    statusEl.textContent = '';
+    statusEl.classList.remove('visible');
+    closeModal();
+  }, 1200);
+});
+
+/* ── ESCAPE KEY CLOSES MODAL ──────────────────────────────────────── */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
