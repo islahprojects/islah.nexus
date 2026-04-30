@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     BRIDGE_API_TOKEN: str = "dev-local-token-change-me"
     FOUNDERS_SEED: str = "change-me-strong-random-secret"
     VAULT_DIR: str = "./vault"
+    FRONTEND_DIR: str = "./frontend"
     ALLOW_EXTERNAL_HTTP_APIS: bool = False
     ALLOWED_API_HOSTS: str = ""
     OLLAMA_BASE_URL: str = ""
@@ -29,12 +30,20 @@ class Settings(BaseSettings):
         return Path(self.VAULT_DIR)
 
     @property
+    def frontend_path(self) -> Path:
+        return Path(self.FRONTEND_DIR)
+
+    @property
     def wal_path(self) -> Path:
         return self.vault_path / "wal.log"
 
     @property
     def memory_path(self) -> Path:
         return self.vault_path / "memory.jsonl"
+
+    @property
+    def commitments_path(self) -> Path:
+        return self.vault_path / "commitments.jsonl"
 
     @property
     def cors_origins_list(self) -> list[str]:
