@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>islah.nexus | Create Your Mirror</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Islah Nexus navigation">
+        <div class="brand-block">
+          <div class="spiral-mark small" aria-hidden="true"><span></span></div>
+          <div class="brand-text">
+            <strong>islah nexus</strong>
+            <span>islahprojects</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <a class="nav-item active" href="#nexus" aria-current="page">
+            <span class="nav-icon">⌾</span>
+            <span>Nexus</span>
+          </a>
+          <a class="nav-item" href="#notes">
+            <span class="nav-icon">▤</span>
+            <span>Notes</span>
+          </a>
+          <a class="nav-item" href="#layers">
+            <span class="nav-icon">▱</span>
+            <span>Layers</span>
+          </a>
+          <a class="nav-item" href="#settings">
+            <span class="nav-icon">⚙</span>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <button class="collapse-button" type="button" aria-label="Collapse sidebar">≪</button>
+      </aside>
+
+      <main class="nexus-stage">
+        <div class="starfield" aria-hidden="true"></div>
+        <div class="orbital-rings" aria-hidden="true">
+          <span class="ring ring-one"></span>
+          <span class="ring ring-two"></span>
+          <span class="ring ring-three"></span>
+        </div>
+
+        <section class="mirror-card" aria-labelledby="mirror-title">
+          <div class="center-brand">
+            <div class="spiral-mark large" aria-hidden="true"><span></span></div>
+            <div>
+              <strong>islah.nexus</strong>
+              <span>islahprojects</span>
+            </div>
+          </div>
+
+          <h1 id="mirror-title">Create Your Mirror</h1>
+          <div class="divider" aria-hidden="true"><span></span></div>
+
+          <form id="mirror-form" class="mirror-input" autocomplete="off">
+            <label class="sr-only" for="mirrorPrompt">Ask the mirror to add layers</label>
+            <span class="spark" aria-hidden="true">✧</span>
+            <input
+              id="mirrorPrompt"
+              name="mirrorPrompt"
+              type="text"
+              placeholder="Ask the mirror to add layers..."
+              maxlength="180"
+            />
+            <button type="submit">Ascend <span aria-hidden="true">↑</span></button>
+          </form>
+
+          <div class="status-row" aria-live="polite">
+            <span id="api-status" class="status-pill">checking spine...</span>
+            <span class="status-pill">0.07 aperture preserved</span>
+            <span class="status-pill">Glasswing defensive-only</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+</html>
