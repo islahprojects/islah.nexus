@@ -1,0 +1,56 @@
+{
+  "butterfly_id": "BUTTERFLY_BOM_V1",
+  "status": "cocoon_active",
+  "constraints": {
+    "sigma_max": 0.93,
+    "uncertainty_aperture": 0.07,
+    "walang_maiiwan_floor": 0.05,
+    "ai_role": "compass_never_core",
+    "glasswing_mode": "defensive_only"
+  },
+  "source_clusters": [
+    "PANTHEON_ROUTER_SEAL",
+    "BUTTERFLY_BOM_V1"
+  ],
+  "fragments": [],
+  "wings": {
+    "left": [],
+    "right": [],
+    "body": [],
+    "antennae": [],
+    "cocoon": [],
+    "flight_path": [],
+    "glasswing": []
+  },
+  "dashboard_cards": [
+    {
+      "card_id": "system_integrity",
+      "label": "System Integrity",
+      "state_binding": "sigma_bounded",
+      "privacy_mode": "public",
+      "display_copy": "sigma within bounded range"
+    },
+    {
+      "card_id": "walang_maiiwan",
+      "label": "Walang Maiiwan",
+      "state_binding": "critical_fragment_retention",
+      "privacy_mode": "public",
+      "display_copy": "critical fragments retained"
+    },
+    {
+      "card_id": "butterfly",
+      "label": "Butterfly",
+      "state_binding": "bom_status",
+      "privacy_mode": "public",
+      "display_copy": "BOM ready / Cocoon active"
+    },
+    {
+      "card_id": "glasswing",
+      "label": "Glasswing",
+      "state_binding": "defensive_boundary_status",
+      "privacy_mode": "public",
+      "display_copy": "defensive-only boundary active"
+    }
+  ],
+  "open_questions": []
+}
