@@ -22,6 +22,7 @@
           <button class="nav active" data-view="nexus">⌾ Nexus</button>
           <button class="nav" data-view="notes">▤ Notes</button>
           <button class="nav" data-view="layers">▱ Layers</button>
+          <button class="nav" data-view="audit">◈ Audit</button>
           <button class="nav" data-view="settings">⚙ Settings</button>
         </nav>
         <div class="sidebar-footer">◉ Walang Maiiwan</div>
@@ -95,6 +96,34 @@
             <button data-action="add_layer">Add Layer</button>
             <button data-action="new_note">New Note</button>
             <button data-action="sync_now">Sync Now</button>
+          </section>
+
+          <section class="audit-panel" id="auditPanel">
+            <header>
+              <div>
+                <span class="card-kicker">CNSI / WAL Audit Trail</span>
+                <h2>The Digital Isekai Log</h2>
+                <p>Every visible entry is proof-backed metadata. No plaintext mirror content is displayed.</p>
+              </div>
+              <button id="refreshWal" class="ghost-action">Refresh WAL</button>
+            </header>
+
+            <div class="audit-grid">
+              <article class="audit-stat">
+                <span>Chain Status</span>
+                <strong id="walValid">checking</strong>
+              </article>
+              <article class="audit-stat">
+                <span>Entries</span>
+                <strong id="walCount">0</strong>
+              </article>
+              <article class="audit-stat wide">
+                <span>Head Proof</span>
+                <code id="walHead">pending</code>
+              </article>
+            </div>
+
+            <ol id="walEntries" class="wal-list"></ol>
           </section>
 
           <section class="activity-card">
