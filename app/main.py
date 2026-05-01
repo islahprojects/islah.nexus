@@ -22,7 +22,7 @@ from app.schemas import (
 )
 from app.sealing import append_wal, verify_proof, verify_wal, wal_tail
 
-app = FastAPI(title=settings.APP_NAME, version="0.1.0")
+app = FastAPI(title=settings.APP_NAME, version="0.1.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,7 +52,7 @@ def safe_summary(value: Any, limit: int = 320) -> str:
 
 
 def theorem4_run(req: Theorem4Request, mutate: bool = False) -> dict[str, Any]:
-    cycles = []
+    cycles: list[dict[str, Any]] = []
     fragments = list(dict.fromkeys(req.critical_fragments))
     coherence = 0.58
     relevance = 0.64
@@ -66,7 +66,7 @@ def theorem4_run(req: Theorem4Request, mutate: bool = False) -> dict[str, Any]:
         objective = (0.35 * coherence) + (0.30 * relevance) + (0.15 * novelty) + (0.20 * inclusion)
         score = objective - (0.12 * uncertainty) - (0.08 * cost) - (0.10 * drift)
         scs = req.perturbation_target / (coherence + relevance + uncertainty + drift + novelty + 1e-9)
-        step = {
+        cycles.append({
             "cycle": cycle,
             "score": round(max(0.05, min(0.93, score)), 6),
             "coherence": round(coherence, 6),
@@ -78,8 +78,7 @@ def theorem4_run(req: Theorem4Request, mutate: bool = False) -> dict[str, Any]:
             "cost": round(cost, 6),
             "scs": round(scs, 6),
             "fragments_preserved": fragments,
-        }
-        cycles.append(step)
+        })
         coherence = min(0.93, coherence + 0.055)
         relevance = min(0.93, relevance + 0.045)
         novelty = max(0.07, novelty - 0.015)
@@ -95,20 +94,25 @@ def theorem4_run(req: Theorem4Request, mutate: bool = False) -> dict[str, Any]:
         "trace": cycles if req.return_trace else [],
         "summary": "Bounded Theorem 4 preview completed without hidden background loops.",
     }
-    append_wal({"type": "theorem4.run" if mutate else "theorem4.predict", "dot_id_hash": req.dot_id_hash, "summary": result["summary"], "cycles_run": len(cycles)})
+    append_wal({
+        "type": "theorem4.run" if mutate else "theorem4.predict",
+        "dot_id_hash": req.dot_id_hash,
+        "summary": result["summary"],
+        "cycles_run": len(cycles),
+    })
     return result
 
 
 def wise_void_reflect(req: WiseVoidReflectRequest) -> dict[str, Any]:
     require_consent(req.consent)
     tokens = [part.strip(".,:;!?()[]{}\n\t").lower() for part in req.input.split()]
-    critical = []
+    critical: list[str] = []
     for token in tokens:
         if len(token) > 4 and token not in critical:
             critical.append(token)
         if len(critical) >= 7:
             break
-    reflection = {
+    return {
         "mirror": "wise_void",
         "reflection": f"Core signal: {safe_summary(req.input, 420)}",
         "critical_fragments": critical,
@@ -117,7 +121,6 @@ def wise_void_reflect(req: WiseVoidReflectRequest) -> dict[str, Any]:
         "walang_maiiwan_check": True,
         "authority": "consent_bound_compass_never_core",
     }
-    return reflection
 
 
 def built_in_api(name: str, query: str | None = None, body: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -150,8 +153,8 @@ def startup() -> None:
     settings.commitments_path.touch(exist_ok=True)
 
 
-@app.get("/")
-def index() -> FileResponse | dict[str, Any]:
+@app.get("/", response_model=None)
+def index():
     index_path = settings.frontend_path / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
@@ -274,12 +277,7 @@ def call_api(req: dict[str, Any]) -> dict[str, Any]:
 def combine_apis(req: ApiCombineRequest) -> dict[str, Any]:
     require_consent(req.consent)
     outputs = [built_in_api(call.api, call.query, call.body) for call in req.calls]
-    result = {
-        "need": req.need,
-        "synthesized": req.synthesize,
-        "outputs": outputs,
-        "summary": f"Combined {len(outputs)} API outputs for {req.need}.",
-    }
+    result = {"need": req.need, "synthesized": req.synthesize, "outputs": outputs, "summary": f"Combined {len(outputs)} API outputs for {req.need}."}
     append_wal({"type": "api.combine", "dot_id_hash": req.dot_id_hash, "need": req.need, "call_count": len(outputs)})
     return result
 
@@ -333,7 +331,7 @@ def wise_void_status() -> dict[str, Any]:
         "can_request_wal_seal": True,
         "can_override_source_dot": False,
         "law": "AI is compass, never core",
-        "seal": "◉ Walang Maiiwan",
+        "seal": "Walang Maiiwan",
     }
 
 
