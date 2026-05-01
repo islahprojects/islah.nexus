@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#02070d" />
+    <title>JAJIS2026 Grand Bridge | Create Mirror</title>
+    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="spiral" aria-hidden="true"></div>
+          <div>
+            <strong>islah.nexus</strong>
+            <span>islahprojects</span>
+          </div>
+        </div>
+        <nav>
+          <button class="nav active" data-view="nexus">⌾ Nexus</button>
+          <button class="nav" data-view="notes">▤ Notes</button>
+          <button class="nav" data-view="layers">▱ Layers</button>
+          <button class="nav" data-view="settings">⚙ Settings</button>
+        </nav>
+        <div class="sidebar-footer">◉ Walang Maiiwan</div>
+      </aside>
+
+      <main class="stage">
+        <section id="create-view" class="create-card">
+          <div class="center-brand">
+            <div class="spiral large" aria-hidden="true"></div>
+            <div>
+              <strong>islah.nexus</strong>
+              <span>Private Line Mirror</span>
+            </div>
+          </div>
+          <h1>Create Your Mirror</h1>
+          <p class="subline">Local-first. Consent-bound. WAL-backed.</p>
+          <form id="createMirrorForm" class="mirror-form">
+            <label>
+              <span>Mirror name</span>
+              <input id="mirrorName" required maxlength="80" placeholder="JJ" autocomplete="nickname" />
+            </label>
+            <label>
+              <span>Local passphrase</span>
+              <input id="mirrorPassphrase" required minlength="8" type="password" placeholder="Keep this private" autocomplete="new-password" />
+            </label>
+            <button type="submit">Create Mirror ↑</button>
+          </form>
+          <p class="fine-print">Plaintext stays local. Sync sends only ciphertext and commitment.</p>
+        </section>
+
+        <section id="dashboard-view" class="dashboard hidden">
+          <header class="dash-header">
+            <div>
+              <div class="dot-row"><span id="breathingDot" class="breathing-dot amber"></span><span id="dotLabel">local-only</span></div>
+              <h1>Welcome back, <span id="mirrorDisplayName">JJ</span></h1>
+              <p>Your Mirror is active.</p>
+            </div>
+            <button id="syncNow" class="primary-action">Sync Now</button>
+          </header>
+
+          <section class="cards">
+            <article class="card">
+              <span class="card-kicker">Mirror Status</span>
+              <h2>Active</h2>
+              <ul>
+                <li id="statusActive">Active</li>
+                <li id="statusSynced">Local-first</li>
+                <li>Encrypted</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="card-kicker">Recent Notes</span>
+              <h2>Private Memory</h2>
+              <p>No plaintext leaves the browser unless DEV mode is enabled.</p>
+            </article>
+            <article class="card">
+              <span class="card-kicker">Active Layers</span>
+              <div class="pill-grid">
+                <span>Identity</span><span>Thoughts</span><span>Projects</span><span>Archive</span><span>Wise Void Mirror</span>
+              </div>
+            </article>
+            <article class="card">
+              <span class="card-kicker">Private Line / Bridge Sync</span>
+              <h2 id="bridgeState">Checking...</h2>
+              <p id="bridgeDetail">Waiting for Grand Bridge API.</p>
+            </article>
+          </section>
+
+          <section class="quick-actions">
+            <button data-action="open_mirror">Open Mirror</button>
+            <button data-action="add_layer">Add Layer</button>
+            <button data-action="new_note">New Note</button>
+            <button data-action="sync_now">Sync Now</button>
+          </section>
+
+          <section class="activity-card">
+            <h2>Recent Activity</h2>
+            <ol id="activityList"></ol>
+          </section>
+
+          <footer>Your data is private, encrypted, and always under your control.</footer>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/main.js"></script>
+  </body>
+</html>
